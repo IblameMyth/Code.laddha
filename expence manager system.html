@@ -86,8 +86,53 @@
       <span><a href="Vacation.html" target="_blank">Vacations</a></span>
     </h2>
 
-    <h4><a href="" target="_blank">Daily Budget</a></h4>
-    <h5><a href="" target="_blank">Future Expenses</a></h5>
+  <h3>Daily Budget</h3>
+<form id="dailyBudgetForm">
+  <input type="date" id="budgetDate" required />
+  <input type="number" id="food" placeholder="Food (₹)" />
+  <input type="number" id="travel" placeholder="Travel (₹)" />
+  <input type="number" id="misc" placeholder="Miscellaneous (₹)" />
+  <button type="submit">Add Entry</button>
+</form>
+<div id="dailySummary"></div>
+<script>
+  document.getElementById('dailyBudgetForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const food = parseFloat(document.getElementById('food').value) || 0;
+    const travel = parseFloat(document.getElementById('travel').value) || 0;
+    const misc = parseFloat(document.getElementById('misc').value) || 0;
+    const total = food + travel + misc;
+    const date = document.getElementById('budgetDate').value;
+    document.getElementById('dailySummary').innerHTML = `<p><strong>${date}</strong> - Total: ₹${total}</p>`;
+  });
+</script>
+
+
+<h4>Future Expenses</h4>
+<form id="futureForm">
+  <input type="text" id="expenseName" placeholder="Expense Name" required />
+  <input type="number" id="expenseAmount" placeholder="Amount (₹)" required />
+  <input type="date" id="expenseDate" required />
+  <button type="submit">Add Future Expense</button>
+</form>
+<ul id="futureList"></ul>
+<script>
+  document.getElementById('futureForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('expenseName').value;
+    const amount = parseFloat(document.getElementById('expenseAmount').value);
+    const date = document.getElementById('expenseDate').value;
+
+    const listItem = document.createElement('li');
+    listItem.textContent = `${date} - ${name}: ₹${amount}`;
+    document.getElementById('futureList').appendChild(listItem);
+
+    // Optionally, clear the form
+    this.reset();
+  });
+</script>
+
+
   </main>
 
   <footer>
@@ -95,3 +140,4 @@
   </footer>
 </body>
 </html>
+
