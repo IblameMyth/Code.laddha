@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel</title>
+  <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6f8;
+  color: #333;
+  padding: 40px;
+  text-align: center;
+}
+
+header {
+  background-color: #2c3e50;
+  color: white;
+  padding: 20px 0;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+header h1 {
+  font-size: 2rem;
+  letter-spacing: 1px;
+}
+
+main h2 {
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+}
+
+main h2 span {
+  display: inline-block;
+  background-color: #3498db;
+  color: white;
+  padding: 8px 15px;
+  margin: 5px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+main h2 span:hover {
+  background-color: #2980b9;
+}
+footer {
+  margin-top: 60px;
+  padding: 20px 0;
+  background-color: #ecf0f1;
+  border-top: 1px solid #ccc;
+}
+
+footer h5 {
+  font-size: 1rem;
+  color: #7f8c8d;
+}
+
+    canvas {
+      max-width: 500px;
+      margin: auto;
+    }
+  </style>
+    </head>
+    <Body>
+        <header>
+            <h1>
+                <div> ExpenseWise </a>
+            </div>
+            </div>
+        </header>
+    <main>
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>/* Same styling as above */</style>
+</head>
+<body>
+  <h1>Travel Expenses</h1>
+  <input type="number" id="auto" placeholder="Auto (₹)" />
+  <input type="number" id="bus" placeholder="Bus (₹)" />
+  <input type="number" id="metro" placeholder="Metro (₹)" />
+  <input type="number" id="petrol" placeholder="Petrol (₹)" />
+  <button onclick="showChart()">Show Chart</button>
+  <div id="summary"></div>
+  <canvas id="travelChart"></canvas>
+
+  <script>
+    function showChart() {
+      const auto = parseInt(document.getElementById('auto').value) || 0;
+      const bus = parseInt(document.getElementById('bus').value) || 0;
+      const metro = parseInt(document.getElementById('metro').value) || 0;
+      const petrol = parseInt(document.getElementById('petrol').value) || 0;
+      const total = auto + bus + metro + petrol;
+      document.getElementById('summary').innerHTML = `<h3>Total Travel Expenses: ₹${total}</h3>`;
+
+      new Chart(document.getElementById('travelChart').getContext('2d'), {
+        type: 'pie',
+        data: {
+          labels: ['Auto', 'Bus', 'Metro', 'Petrol'],
+          datasets: [{
+            data: [auto, bus, metro, petrol],
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+      });
+    }
+  </script>
+    </main>
+
+    <footer>
+    Beware of little expenses. A small leak will sink a great ship.
+    </footer>
+    </Body>
+</html>
