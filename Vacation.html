@@ -10,8 +10,9 @@
     *{box-sizing:border-box}html,body{height:100%}
     body{margin:0;padding:28px;font-family:Inter,'Segoe UI',Roboto;background-image:linear-gradient(rgba(255,255,255,0.86),rgba(255,255,255,0.86)),var(--bg-img);background-size:cover;background-position:center;color:var(--text)}
     main{max-width:var(--container);margin:0 auto;min-height:68vh;padding:20px}
-    header{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,var(--accent),var(--primary));color:#fff;padding:16px 20px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px}
-    header h1{margin:0;font-size:1.25rem}
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+    header{display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,var(--accent),var(--primary));color:#fff;padding:16px 20px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px}
+    header h1{margin:0;font-size:1.6rem;font-family:'Poppins',sans-serif;font-weight:600;letter-spacing:0.5px}
     input[type="number"]{padding:10px;border-radius:10px;border:1px solid #e6eef8;background:#fff;min-width:150px;margin:8px}
     button{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;cursor:pointer}
     canvas{display:block;margin:18px auto;max-width:640px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.06);padding:8px}
@@ -26,6 +27,10 @@
 
   <main>
     <h2>Vacation Expenses</h2>
+    <div style="margin-bottom: 20px;">
+      <label for="expenseMonth">Select Month: </label>
+      <input type="month" id="expenseMonth" style="padding: 10px; border-radius: 10px; border: 1px solid #e6eef8;" />
+    </div>
     <input type="number" id="tickets" placeholder="Tickets (₹)" />
     <input type="number" id="hostel" placeholder="Hostel (₹)" />
     <input type="number" id="food" placeholder="Food (₹)" />
@@ -34,6 +39,32 @@
     <button onclick="showVacationChart()">Show Chart</button>
     <div id="summary"></div>
     <canvas id="vacChart"></canvas>
+
+    <div style="margin-top: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: var(--shadow);">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e6eef8;">Date</th>
+            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e6eef8;">Tickets</th>
+            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e6eef8;">Hostel</th>
+            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e6eef8;">Food</th>
+            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e6eef8;">Traveling</th>
+            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e6eef8;">Total</th>
+          </tr>
+        </thead>
+        <tbody id="expenseTableBody"></tbody>
+        <tfoot>
+          <tr>
+            <td style="padding: 12px; font-weight: bold;">Total</td>
+            <td id="totalTickets" style="padding: 12px;">₹0</td>
+            <td id="totalHostel" style="padding: 12px;">₹0</td>
+            <td id="totalFood" style="padding: 12px;">₹0</td>
+            <td id="totalTraveling" style="padding: 12px;">₹0</td>
+            <td id="grandTotal" style="padding: 12px; font-weight: bold;">₹0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
   </main>
 
   <footer>
@@ -41,6 +72,181 @@
   </footer>
 
   <script>
+    // Set current month as default
+    window.addEventListener('load', function() {
+      const today = new Date();
+      const month = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+      document.getElementById('expenseMonth').value = month;
+
+      // Load saved data from XML and populate localStorage
+      fetch('expenses.xml')
+        .then(response => response.text())
+        .then(str => (new window.DOMParser()).parseFromString(str, "text/xml"))
+        .then(xml => {
+          // Find the current month's node
+          const monthNode = Array.from(xml.getElementsByTagName('month')).find(m => 
+            m.getAttribute('id') === month
+          );
+          
+          if (monthNode) {
+            const vacationNode = monthNode.getElementsByTagName('vacation')[0];
+            if (vacationNode) {
+              const data = {
+                tickets: Number(vacationNode.getElementsByTagName('tickets')[0]?.textContent || 0),
+                hostel: Number(vacationNode.getElementsByTagName('hostel')[0]?.textContent || 0),
+                food: Number(vacationNode.getElementsByTagName('food')[0]?.textContent || 0),
+                traveling: Number(vacationNode.getElementsByTagName('traveling')[0]?.textContent || 0)
+              };
+
+              // Save to localStorage
+              localStorage.setItem('vacationExpenses_' + month, JSON.stringify(data));
+            }
+          }
+          
+          // Now load the data from localStorage
+          loadMonthlyData(month);
+        })
+        .catch(error => {
+          console.error('Error loading expenses:', error);
+          loadMonthlyData(month);
+        });
+    });
+
+    // Load data for selected month
+    document.getElementById('expenseMonth').addEventListener('change', function() {
+      loadMonthlyData(this.value);
+    });
+
+    function updateTable() {
+      const tableBody = document.getElementById('expenseTableBody');
+      if (!tableBody) return;
+      tableBody.innerHTML = '';
+
+      const expenses = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('vacationExpenses_')) {
+          try {
+            const data = JSON.parse(localStorage.getItem(key));
+            if (data && data.date && data.date.startsWith(document.getElementById('expenseMonth').value)) {
+              expenses.push(data);
+            }
+          } catch (e) { /* ignore malformed */ }
+        }
+      }
+
+      expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      let totalTickets = 0, totalHostel = 0, totalFood = 0, totalTraveling = 0;
+
+      expenses.forEach(expense => {
+        const row = document.createElement('tr');
+        const total = (expense.tickets || 0) + (expense.hostel || 0) + 
+                     (expense.food || 0) + (expense.traveling || 0);
+        row.innerHTML = `
+          <td style="padding: 12px; border-bottom: 1px solid #e6eef8; cursor: pointer;" onclick="loadExpense('${expense.date}')">
+            ${expense.date}
+          </td>
+          <td style="padding: 12px; border-bottom: 1px solid #e6eef8;">₹${expense.tickets || 0}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e6eef8;">₹${expense.hostel || 0}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e6eef8;">₹${expense.food || 0}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e6eef8;">₹${expense.traveling || 0}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e6eef8;">₹${total}</td>
+        `;
+
+        tableBody.appendChild(row);
+
+        totalTickets += expense.tickets || 0;
+        totalHostel += expense.hostel || 0;
+        totalFood += expense.food || 0;
+        totalTraveling += expense.traveling || 0;
+      });
+
+      document.getElementById('totalTickets').textContent = `₹${totalTickets}`;
+      document.getElementById('totalHostel').textContent = `₹${totalHostel}`;
+      document.getElementById('totalFood').textContent = `₹${totalFood}`;
+      document.getElementById('totalTraveling').textContent = `₹${totalTraveling}`;
+      document.getElementById('grandTotal').textContent = 
+        `₹${totalTickets + totalHostel + totalFood + totalTraveling}`;
+    }
+
+    function loadMonthlyData(monthKey) {
+      // First try localStorage for immediate data
+      const savedData = localStorage.getItem('vacationExpenses_' + monthKey);
+      if (savedData) {
+        const data = JSON.parse(savedData);
+        document.getElementById('tickets').value = data.tickets || '';
+        document.getElementById('hostel').value = data.hostel || '';
+        document.getElementById('food').value = data.food || '';
+        document.getElementById('traveling').value = data.traveling || '';
+        showVacationChart(); // Show chart with saved data
+      } else {
+        // If not in localStorage, try loading from XML
+        fetch('expenses.xml')
+          .then(response => response.text())
+          .then(str => (new window.DOMParser()).parseFromString(str, "text/xml"))
+          .then(xml => {
+            const monthNode = Array.from(xml.getElementsByTagName('month')).find(m => 
+              m.getAttribute('id') === monthKey
+            );
+            
+            if (monthNode) {
+              const vacationNode = monthNode.getElementsByTagName('vacation')[0];
+              if (vacationNode) {
+                const data = {
+                  tickets: Number(vacationNode.getElementsByTagName('tickets')[0]?.textContent || 0),
+                  hostel: Number(vacationNode.getElementsByTagName('hostel')[0]?.textContent || 0),
+                  food: Number(vacationNode.getElementsByTagName('food')[0]?.textContent || 0),
+                  traveling: Number(vacationNode.getElementsByTagName('traveling')[0]?.textContent || 0)
+                };
+
+                // Update the form
+                document.getElementById('tickets').value = data.tickets || '';
+                document.getElementById('hostel').value = data.hostel || '';
+                document.getElementById('food').value = data.food || '';
+                document.getElementById('traveling').value = data.traveling || '';
+
+                // Save to localStorage for future use
+                localStorage.setItem('vacationExpenses_' + monthKey, JSON.stringify(data));
+                showVacationChart();
+                return;
+              }
+            }
+            
+            // If no data found, clear the form
+            clearForm();
+          })
+          .catch(error => {
+            console.error('Error loading expenses:', error);
+            clearForm();
+          });
+      }
+      updateTable();
+    }
+
+    function clearForm() {
+      document.getElementById('tickets').value = '';
+      document.getElementById('hostel').value = '';
+      document.getElementById('food').value = '';
+      document.getElementById('traveling').value = '';
+      document.getElementById('summary').innerHTML = '';
+      if (window.vacationChart) {
+        window.vacationChart.destroy();
+      }
+    }
+
+    function loadExpense(date) {
+      document.getElementById('expenseMonth').value = date.substring(0, 7);
+      const data = JSON.parse(localStorage.getItem(`vacationExpenses_${date}`));
+      if (data) {
+        document.getElementById('tickets').value = data.tickets || '';
+        document.getElementById('hostel').value = data.hostel || '';
+        document.getElementById('food').value = data.food || '';
+        document.getElementById('traveling').value = data.traveling || '';
+        showVacationChart();
+      }
+    }
+
     function showVacationChart() {
       const tickets = parseInt(document.getElementById('tickets').value) || 0;
       const hostel = parseInt(document.getElementById('hostel').value) || 0;
@@ -48,6 +254,42 @@
       const traveling = parseInt(document.getElementById('traveling').value) || 0;
       const total = tickets + hostel + food + traveling;
 
+      // Get the full date (YYYY-MM-DD)
+      const monthKey = document.getElementById('expenseMonth').value;
+      const today = new Date();
+      const date = `${monthKey}-${String(today.getDate()).padStart(2, '0')}`;
+      
+      // Save data to localStorage and XML
+      const expenseData = {
+        date: date,
+        tickets: tickets, 
+        hostel: hostel, 
+        food: food, 
+        traveling: traveling
+      };
+
+      // Save to localStorage for immediate use
+      localStorage.setItem('vacationExpenses_' + date, JSON.stringify(expenseData));
+
+      // Save to XML via PHP
+      fetch('save_expense.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'vacation',
+          date: date,
+          tickets: tickets,
+          hostel: hostel,
+          food: food,
+          traveling: traveling
+        })
+      })
+      .catch(error => console.error('Error saving expense:', error));
+
+      // Update table and summary
+      updateTable();
       document.getElementById('summary').innerHTML = `<h3>Total Vacation Expenses: ₹${total}</h3>`;
 
       const ctx = document.getElementById('vacChart').getContext('2d');
@@ -67,6 +309,16 @@
         options: {
           responsive: true,
           plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const value = context.raw;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return `${context.label}: ${percentage}% (₹${value})`;
+                }
+              }
+            },
             legend: {
               position: 'bottom'
             }
@@ -74,6 +326,9 @@
         }
       });
     }
+
+    // Initialize table on load
+    updateTable();
   </script>
 </body>
 </html>
