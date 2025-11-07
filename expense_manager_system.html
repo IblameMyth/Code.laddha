@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExpenseWise</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --text: #0f172a;
+      --primary: #2563eb;
+      --accent: #0ea5a4;
+      --radius: 12px;
+      --shadow: 0 8px 26px rgba(15, 23, 42, 0.06);
+      --container: 1100px;
+      --gap: 14px;
+      /* Gradient colors */
+      --gradient-start: rgba(255, 255, 255, 0.9);
+      --gradient-end: rgba(255, 255, 255, 0.7);
+      --card-border: rgba(255, 255, 255, 0.2);
+      /* background image (unsplash) — feel free to replace with your own image file */
+      --bg-img: url('https://images.unsplash.com/photo-1542223616-1e7b2d2b02d9?auto=format&fit=crop&w=1500&q=80');
+    }
+
+    /* reset (keeps header/main/footer in the same DOM order) */
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, 'Segoe UI', Roboto, system-ui, -apple-system, 'Helvetica Neue', Arial;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      padding: 28px;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.86)), var(--bg-img);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: block;
+
+    }
+
+    main {
+      max-width: var(--container);
+      margin: 0 auto;
+      min-height: 72vh;
+      padding: 28px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Card styling for content sections */
+    main > div {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(5px);
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--gap);
+      background: linear-gradient(90deg, var(--accent), var(--primary));
+      color: #fff;
+      padding: 18px 22px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.5px
+    }
+
+
+    main h2 {
+      margin: 12px 0 18px 0;
+      font-size: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center
+    }
+
+    main h2 span {
+      display: inline-block
+    }
+
+    main h2 a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+    }
+
+    main h2 a:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(2, 6, 23, 0.06);
+      filter: brightness(1.03)
+    }
+
+    main h2 a[href="food.html"] {
+      background: linear-gradient(90deg, #ef4444, #fb923c);
+      border-color: rgba(255, 255, 255, 0.12)
+    }
+
+    main h2 a[href="Travel.html"] {
+      background: linear-gradient(90deg, #06b6d4, #2563eb);
+      border-color: rgba(255, 255, 255, 0.12)
+    }
+
+    main h2 a[href="Entertainment.html"] {
+      background: linear-gradient(90deg, #8b5cf6, #ec4899);
+      border-color: rgba(255, 255, 255, 0.12)
+    }
+
+    main h2 a[href="EMI.html"] {
+      background: linear-gradient(90deg, #10b981, #059669);
+      border-color: rgba(255, 255, 255, 0.12)
+    }
+
+    main h2 a[href="Vacation.html"] {
+      background: linear-gradient(90deg, #f59e0b, #f97316);
+      border-color: rgba(255, 255, 255, 0.12)
+    }
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center
+    }
+
+    input[type="date"],
+    input[type="number"],
+    input[type="text"] {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(8px);
+      min-width: 160px;
+      font-size: 0.95rem;
+      color: var(--text);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 8px 24px rgba(14, 165, 164, 0.12);
+      transform: translateY(-2px);
+    }
+
+    button {
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      font-weight: 600;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.25);
+      background: linear-gradient(135deg, var(--accent), var(--primary));
+    }
+
+    /* Add smooth transitions for cards */
+    main > div {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    main > div:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    #dailySummary {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    #dailySummary p {
+      background: var(--card);
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(2, 6, 23, 0.04);
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    #futureList {
+      list-style: none;
+      padding: 0;
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    #futureList li {
+      background: var(--card);
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(2, 6, 23, 0.03);
+      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    main h3,
+    main h4 {
+      margin-top: 28px;
+      font-size: 1.1rem;
+      color: var(--text)
+    }
+
+    footer {
+      margin-top: 36px;
+      padding: 18px 12px;
+      background: transparent;
+      color: var(--muted);
+      text-align: center
+    }
+
+    @media (max-width:860px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start
+      }
+
+      form {
+        justify-content: center
+      }
+
+      main h2 {
+        justify-content: center
+      }
+    }
+
+    @media (max-width:420px) {
+      body {
+        padding: 16px
+      }
+
+      input[type="date"],
+      input[type="number"],
+      input[type="text"] {
+        min-width: 120px
+      }
+
+      button {
+        width: 100%
+      }
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0
+    }
+
+    /* Table Styles */
+    .expense-table {
+      width: 100%;
+      margin-top: 20px;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border-collapse: collapse;
+      overflow: hidden;
+    }
+
+    .expense-table th,
+    .expense-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e6eef8;
+    }
+
+    .expense-table th {
+      background: linear-gradient(90deg, var(--accent), var(--primary));
+      color: white;
+      font-weight: 600;
+    }
+
+    .expense-table tr:hover {
+      background-color: rgba(2, 6, 23, 0.02);
+    }
+
+    .expense-table tfoot td {
+      font-weight: bold;
+      background-color: rgba(2, 6, 23, 0.02);
+    }
+
+    .table-container {
+      margin-top: 30px;
+      overflow-x: auto;
+      border-radius: var(--radius);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>ExpenseWise</h1>
+  </header>
+  <main>
+    <h2>
+      <span><a href="food.html" target="_blank">Food</a></span>
+      <span><a href="Travel.html" target="_blank">Travel</a></span>
+      <span><a href="Entertainment.html" target="_blank">Entertainment</a></span>
+      <span><a href="EMI.html" target="_blank">EMI</a></span>
+      <span><a href="Vacation.html" target="_blank">Vacations</a></span>
+    </h2>
+
+    <h3>Daily Budget</h3>
+    <form id="dailyBudgetForm">
+      <input type="date" id="budgetDate" required />
+      <input type="number" id="food" placeholder="Food (₹)" oninput="autoCalculateAndSave()" />
+      <input type="number" id="travel" placeholder="Travel (₹)" oninput="autoCalculateAndSave()" />
+      <input type="number" id="misc" placeholder="Miscellaneous (₹)" oninput="autoCalculateAndSave()" />
+    </form>
+    <div id="dailySummary"></div>
+    <div style="margin-top:10px; text-align:center;">
+      <button onclick="clearAllData()" style="background: linear-gradient(90deg, #dc2626, #ef4444); padding:10px 14px; border-radius:10px; border:none; color:#fff; cursor:pointer;">Clear All Data</button>
+    </div>
+    <script>
+      // Function to auto-calculate and save data
+function autoCalculateAndSave() {
+  const food = parseFloat(document.getElementById('food').value) || 0;
+  const travel = parseFloat(document.getElementById('travel').value) || 0;
+  const misc = parseFloat(document.getElementById('misc').value) || 0;
+  const total = food + travel + misc;
+  const date = document.getElementById('budgetDate').value;
+
+  if (date) {  // Only save if date is selected
+    // Save to localStorage with unique key for each date
+    const expenseData = {
+      date: date,
+      food: food,
+      travel: travel,
+      misc: misc,
+      total: total
+    };
+    localStorage.setItem(`expense_${date}`, JSON.stringify(expenseData));
+    
+    // Show daily summary
+    document.getElementById('dailySummary').innerHTML = `<p><strong>${date}</strong> - Total: ₹${total}</p>`;
+    
+    // Update the table
+    loadMonthlyData();
+  }
+}
+
+// Set today's date and load data when page loads
+window.addEventListener('load', function() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${year}-${month}-${day}`;
+  
+  // Set today's date in the date input
+  document.getElementById('budgetDate').value = todayStr;
+
+  // Load saved data for today if exists
+  const savedData = localStorage.getItem(`expense_${todayStr}`);
+  if (savedData) {
+    const data = JSON.parse(savedData);
+    document.getElementById('food').value = data.food || '';
+    document.getElementById('travel').value = data.travel || '';
+    document.getElementById('misc').value = data.misc || '';
+    document.getElementById('dailySummary').innerHTML = `<p><strong>${data.date}</strong> - Total: ₹${data.total}</p>`;
+  }
+
+  // Load monthly data table
+  loadMonthlyData();
+});
+
+// Update calculations when date changes
+document.getElementById('budgetDate').addEventListener('change', function() {
+  const savedData = localStorage.getItem(`expense_${this.value}`);
+  if (savedData) {
+    const data = JSON.parse(savedData);
+    document.getElementById('food').value = data.food || '';
+    document.getElementById('travel').value = data.travel || '';
+    document.getElementById('misc').value = data.misc || '';
+  } else {
+    document.getElementById('food').value = '';
+    document.getElementById('travel').value = '';
+    document.getElementById('misc').value = '';
+  }
+  autoCalculateAndSave();
+});
+</script>
+
+<h4>Future Expenses</h4>
+    <form id="futureForm">
+      <input type="text" id="expenseName" placeholder="Expense Name" pattern="[A-Za-z\s]+" title="Please enter only letters and spaces" required />
+      <input type="number" id="expenseAmount" placeholder="Amount (₹)" required />
+      <input type="date" id="expenseDate" required />
+      <button type="submit">Add Future Expense</button>
+    </form>
+    <ul id="futureList"></ul>
+    <script>
+      // Function to load monthly data
+      function loadMonthlyData() {
+        const table = document.createElement('table');
+        table.className = 'expense-table';
+        
+        // Create table header
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+          <tr>
+            <th>Date</th>
+            <th>Food</th>
+            <th>Travel</th>
+            <th>Misc</th>
+            <th>Total</th>
+          </tr>
+        `;
+        table.appendChild(thead);
+        
+        // Create table body
+        const tbody = document.createElement('tbody');
+        let monthlyTotal = 0;
+        
+        // Get all expenses from localStorage
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith('expense_')) {
+            try {
+              const data = JSON.parse(localStorage.getItem(key));
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td>${data.date}</td>
+                <td>₹${data.food}</td>
+                <td>₹${data.travel}</td>
+                <td>₹${data.misc}</td>
+                <td>₹${data.total}</td>
+              `;
+              tbody.appendChild(row);
+              monthlyTotal += data.total;
+            } catch (err) {
+              console.error('Error parsing expense data:', err);
+            }
+          }
+        }
+        
+        table.appendChild(tbody);
+        
+        // Create table footer
+        const tfoot = document.createElement('tfoot');
+        tfoot.innerHTML = `
+          <tr>
+            <td colspan="4">Monthly Total</td>
+            <td>₹${monthlyTotal}</td>
+          </tr>
+        `;
+        table.appendChild(tfoot);
+        
+        // Create or update table container
+        let container = document.querySelector('.table-container');
+        if (!container) {
+          container = document.createElement('div');
+          container.className = 'table-container';
+          document.querySelector('main').appendChild(container);
+        }
+        container.innerHTML = '';
+        container.appendChild(table);
+      }
+
+      document.getElementById('futureForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const nameInput = document.getElementById('expenseName');
+        const name = nameInput.value;
+        
+        // Validate that the name contains only letters and spaces
+        if (!/^[A-Za-z\s]+$/.test(name)) {
+          alert('Please enter only letters and spaces for the expense name');
+          return;
+        }
+        
+        const amount = parseFloat(document.getElementById('expenseAmount').value);
+        const date = document.getElementById('expenseDate').value;
+        
+        // Create expense object
+        const expense = {
+          name: name,
+          amount: amount,
+          date: date
+        };
+
+        // Save to localStorage
+        let futureExpenses = JSON.parse(localStorage.getItem('futureExpenses') || '[]');
+        futureExpenses.push(expense);
+        localStorage.setItem('futureExpenses', JSON.stringify(futureExpenses));
+
+        // Create list item
+        const listItem = document.createElement('li');
+        listItem.textContent = `${date} - ${name}: ₹${amount}`;
+        document.getElementById('futureList').appendChild(listItem);
+
+        this.reset();
+      });
+      </script>
+
+    <script>
+    // Clear all application data from localStorage (used by "Clear All Data" button)
+    function clearAllData() {
+      if (!confirm('Are you sure you want to clear ALL saved expense data from this app? This cannot be undone.')) return;
+
+      const prefixes = [
+        'foodExpenses_',
+        'travelExpenses_',
+        'vacationExpenses_',
+        'entertainmentExpenses_',
+        'emiExpenses_',
+        'expense_' // daily budget entries
+      ];
+
+      let deletedCount = 0;
+
+      // Remove matching prefixed keys and the futureExpenses key
+      Object.keys(localStorage).forEach(key => {
+        if (key === 'futureExpenses') {
+          localStorage.removeItem(key);
+          deletedCount++;
+          return;
+        }
+
+        for (const p of prefixes) {
+          if (key.startsWith(p)) {
+            localStorage.removeItem(key);
+            deletedCount++;
+            break;
+          }
+        }
+      });
+
+      // Clear UI elements on the home page
+      const ds = document.getElementById('dailySummary');
+      if (ds) ds.innerHTML = '';
+
+      const futureList = document.getElementById('futureList');
+      if (futureList) futureList.innerHTML = '';
+
+      // Try to refresh any tables if functions exist
+      if (typeof loadMonthlyData === 'function') {
+        try { loadMonthlyData(); } catch (e) { /* ignore */ }
+      }
+      if (typeof updateTable === 'function') {
+        try { updateTable(); } catch (e) { /* ignore */ }
+      }
+
+      alert(`Successfully cleared ${deletedCount} saved records.`);
+    }
+
+    // Expose globally for inline onclick
+    window.clearAllData = clearAllData;
+    </script>
+
+  </main>
+
+  <footer>
+    Beware of little expenses. A small leak will sink a great ship.
+  </footer>
+</body>
+
+</html>

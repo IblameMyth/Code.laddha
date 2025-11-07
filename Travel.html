@@ -4,11 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Travel</title>
+  <link rel="stylesheet" href="styles.css">
   <style>
-    :root{--bg:#f8fafc;--card:#fff;--muted:#6b7280;--text:#0f172a;--primary:#2563eb;--accent:#0ea5a4;--radius:12px;--shadow:0 8px 26px rgba(15,23,42,0.06);--container:1100px;--bg-img:url('https://images.unsplash.com/photo-1542223616-1e7b2d2b02d9?auto=format&fit=crop&w=1500&q=80')}
+    :root{
+      --bg:#f8fafc;
+      --card:rgba(255, 255, 255, 0.9);
+      --muted:#6b7280;
+      --text:#0f172a;
+      --primary:#2563eb;
+      --accent:#0ea5a4;
+      --radius:12px;
+      --shadow:0 8px 26px rgba(15,23,42,0.06);
+      --container:1100px;
+      --bg-img:url('https://images.unsplash.com/photo-1542223616-1e7b2d2b02d9?auto=format&fit=crop&w=1500&q=80');
+      --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+      --glass-border: 1px solid rgba(255, 255, 255, 0.2);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
     *{box-sizing:border-box}html,body{height:100%}
     body{margin:0;padding:28px;font-family:Inter, 'Segoe UI', Roboto;background-image:linear-gradient(rgba(255,255,255,0.86),rgba(255,255,255,0.86)),var(--bg-img);background-size:cover;background-position:center;color:var(--text)}
-    main{max-width:var(--container);margin:0 auto;min-height:68vh;padding:20px}
+    main{
+      max-width:var(--container);
+      margin:0 auto;
+      min-height:68vh;
+      padding:28px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: var(--glass-border);
+      border-radius: var(--radius);
+      box-shadow: var(--glass-shadow);
+    }
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
     header{display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,var(--accent),var(--primary));color:#fff;padding:16px 20px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px}
     header h1{margin:0;font-size:1.6rem;font-family:'Poppins',sans-serif;font-weight:600;letter-spacing:0.5px}
@@ -35,11 +60,12 @@
   <input type="number" id="metro" placeholder="Metro (₹)" />
   <input type="number" id="petrol" placeholder="Petrol (₹)" />
   <button onclick="showChart()">Show Chart</button>
+  <button onclick="clearAllData()" style="background: linear-gradient(90deg, #dc2626, #ef4444); margin-left: 10px;">Clear All Data</button>
   <div id="summary"></div>
   <canvas id="travelChart"></canvas>
 
-  <div style="margin-top: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: var(--shadow);">
-    <table style="width: 100%; border-collapse: collapse;">
+  <div class="table-container" style="margin-top: 20px;">
+    <table class="expense-table" style="width: 100%; border-collapse: collapse;">
       <thead>
         <tr>
           <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e6eef8;">Date</th>
@@ -65,18 +91,52 @@
   </div>
 
   <script>
-    // Set current month as default
-    window.addEventListener('load', function() {
+    // Initialize when document is ready
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeTravel();
+    });
+
+    function initializeTravel() {
       const today = new Date();
       const month = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
       document.getElementById('expenseMonth').value = month;
-      updateTable();
-    });
+      
+      // Set up event listeners
+      document.getElementById('expenseMonth').addEventListener('change', function() {
+        loadMonthlyData(this.value);
+      });
+      
+      // Initial load
+      loadMonthlyData(month);
+    }
 
-    // Load data for selected month
-    document.getElementById('expenseMonth').addEventListener('change', function() {
+    function loadMonthlyData(month) {
+      const savedData = localStorage.getItem('travelExpenses_' + month);
+      if (savedData) {
+        try {
+          const data = JSON.parse(savedData);
+          document.getElementById('auto').value = data.auto || '';
+          document.getElementById('bus').value = data.bus || '';
+          document.getElementById('metro').value = data.metro || '';
+          document.getElementById('petrol').value = data.petrol || '';
+          showChart();
+        } catch (e) {
+          console.error('Error loading data:', e);
+        }
+      } else {
+        // Clear form if no data exists
+        document.getElementById('auto').value = '';
+        document.getElementById('bus').value = '';
+        document.getElementById('metro').value = '';
+        document.getElementById('petrol').value = '';
+        document.getElementById('summary').innerHTML = '';
+        if (window.travelChartInstance) {
+          window.travelChartInstance.destroy();
+          window.travelChartInstance = null;
+        }
+      }
       updateTable();
-    });
+    }
 
     function updateTable() {
       const tableBody = document.getElementById('expenseTableBody');
@@ -201,75 +261,50 @@
       });
     }
 
+    // Clear all travel expense data
+    function clearAllData() {
+      if (confirm('Are you sure you want to clear all travel expense data? This cannot be undone.')) {
+        // Get all keys from localStorage
+        const keys = Object.keys(localStorage);
+        
+        // Remove only travel-related data
+        let deletedCount = 0;
+        keys.forEach(key => {
+          if (key.startsWith('travelExpenses_')) {
+            localStorage.removeItem(key);
+            deletedCount++;
+          }
+        });
+        
+        // Clear form fields
+        document.getElementById('auto').value = '';
+        document.getElementById('bus').value = '';
+        document.getElementById('metro').value = '';
+        document.getElementById('petrol').value = '';
+        
+        // Clear chart
+        if (window.travelChartInstance) {
+          window.travelChartInstance.destroy();
+          window.travelChartInstance = null;
+        }
+        
+        // Clear summary
+        document.getElementById('summary').innerHTML = '';
+        
+        // Update table
+        updateTable();
+        
+        alert(`Successfully cleared ${deletedCount} travel expense records.`);
+      }
+    }
+
     // Expose functions globally
     window.showChart = showChart;
     window.loadExpense = loadExpense;
-function autoCalculateAndSave() {
-  const food = parseFloat(document.getElementById('food').value) || 0;
-  const travel = parseFloat(document.getElementById('travel').value) || 0;
-  const misc = parseFloat(document.getElementById('misc').value) || 0;
-  const total = food + travel + misc;
-  const date = document.getElementById('budgetDate').value;
-
-  if (date) {  // Only save if date is selected
-    // Save to localStorage with unique key for each date
-    const expenseData = {
-      date: date,
-      food: food,
-      travel: travel,
-      misc: misc,
-      total: total
-    };
-    localStorage.setItem(`expense_${date}`, JSON.stringify(expenseData));
+    window.clearAllData = clearAllData;
     
-    // Show daily summary
-    document.getElementById('dailySummary').innerHTML = `<p><strong>${date}</strong> - Total: ₹${total}</p>`;
-    
-    // Update the table
-    loadMonthlyData();
-  }
-}
-
-// Set today's date and load data when page loads
-window.addEventListener('load', function() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  const todayStr = `${year}-${month}-${day}`;
-  
-  // Set today's date in the date input
-  document.getElementById('budgetDate').value = todayStr;
-
-  // Load saved data for today if exists
-  const savedData = localStorage.getItem(`expense_${todayStr}`);
-  if (savedData) {
-    const data = JSON.parse(savedData);
-    document.getElementById('food').value = data.food || '';
-    document.getElementById('travel').value = data.travel || '';
-    document.getElementById('misc').value = data.misc || '';
-    document.getElementById('dailySummary').innerHTML = `<p><strong>${data.date}</strong> - Total: ₹${data.total}</p>`;
-  }
-
-  // Load monthly data table
-  loadMonthlyData();
-});
-
-// Update calculations when date changes
-document.getElementById('budgetDate').addEventListener('change', function() {
-  const savedData = localStorage.getItem(`expense_${this.value}`);
-  if (savedData) {
-    const data = JSON.parse(savedData);
-    document.getElementById('food').value = data.food || '';
-    document.getElementById('travel').value = data.travel || '';
-    document.getElementById('misc').value = data.misc || '';
-  } else {
-    document.getElementById('food').value = '';
-    document.getElementById('travel').value = '';
-    document.getElementById('misc').value = '';
-  }
-  autoCalculateAndSave();
-});
+    // Initial load
+    updateTable();
   </script>
     </main>
 
